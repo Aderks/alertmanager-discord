@@ -1,0 +1,16 @@
+version: '3'
+services:
+
+# discord-alertmanager
+  discord-alertmanager:
+    image: benjojo/alertmanager-discord:latest
+    container_name: discord-alertmanager
+    ports:
+      - '9095:9095'
+    environment:
+      LISTEN_ADDRESS: ${LISTEN_ADDRESS}
+      DISCORD_WEBHOOK: ${DISCORD_WEBHOOK}
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "100m"
