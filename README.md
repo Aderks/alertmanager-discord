@@ -1,5 +1,60 @@
-alertmanager-discord
+discord-alertmanager
 ===
+
+**Pull image & Clone Repo:**
+
+```docker
+cd $HOME && \
+docker pull benjojo/alertmanager-discord && \
+git clone https://github.com/Aderks/discord-alertmanager.git
+```
+
+**Adjust .env:**
+
+```bash
+DISCORD_WEBHOOK='<input_webhook_url_here>' && \
+
+sudo tee /home/$USER/discord-alertmanager/.env<<EOF
+LISTEN_ADDRESS=0.0.0.0:9095
+DISCORD_WEBHOOK=$DISCORD_WEBHOOK
+EOF
+```
+
+**Create service file:**
+
+```bash
+sudo tee <<EOF >/dev/null /etc/systemd/system/discord-alertmanager.service
+[Unit]
+Description=Discord Alertmanager
+Requires=docker.service network-online.target
+After=docker.service network-online.target
+
+[Service]
+WorkingDirectory=/home/$USER/discord-alertmanager
+Type=oneshot
+RemainAfterExit=yes
+
+# Pre-start command
+ExecStartPre=/usr/bin/docker-compose -f "/home/$USER/discord-alertmanager/docker-compose.yml" down
+
+# Compose up
+ExecStart=/usr/bin/docker-compose -f "/home/$USER/discord-alertmanager/docker-compose.yml" up -d
+
+# Compose down
+ExecStop=/usr/bin/docker-compose -f "/home/$USER/discord-alertmanager/docker-compose.yml" down
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+```bash
+sudo systemctl daemon-reload && \
+sudo systemctl start discord-alertmanager && \
+sudo systemctl enable discord-alertmanager
+```
+
+---
 
 Give this a webhook (with the DISCORD_WEBHOOK environment variable) and point it as a webhook on alertmanager, and it will post your alerts into a discord channel for you as they trigger:
 
